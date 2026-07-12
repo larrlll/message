@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>익명 쪽지</title>
+
+  <!-- ══════════════════════════════════════════════ -->
+<!--  🔥 Firebase SDK                              -->
+<!-- ══════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- ══════════════════════════════════════════════ -->
+<!--  🔥 FIREBASE CONFIG — 여기에 본인 설정 입력    -->
+<!-- ══════════════════════════════════════════════ -->
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyALmi9bFPlxlv8h8YT3RDviVswF8qJLhMo",
+  authDomain: "test-b933c.firebaseapp.com",
+  databaseURL: "https://test-b933c-default-rtdb.firebaseio.com",
+  projectId: "test-b933c",
+  storageBucket: "test-b933c.firebasestorage.app",
+  messagingSenderId: "982341907625",
+  appId: "1:982341907625:web:4c90213e6ebb9d7ac465b8"
+};
+
+const app = initializeApp(firebaseConfig);
+</script>
+<!-- ══════════════════════════════════════════════ -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+
+  :root {
+    --sky: #5BB8FF;
+    --sky-dark: #3A9FE8;
+    --sky-pale: #EBF6FF;
+    --white: #FFFFFF;
+    --gray-50: #F7F9FC;
+    --gray-100: #EEF1F6;
+    --gray-300: #C8D0DC;
+    --gray-500: #7A8699;
+    --gray-700: #3D4A5C;
+    --gray-900: #1A2333;
+    --red: #FF5252;
+    --red-light: #FFF0F0;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--sky-pale);
+    color: var(--gray-900);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ─── HEADER ─── */
+  .app-header {
+    width: 100%;
+    max-width: 480px;
+    background: var(--sky);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(91,184,255,.3);
+  }
+  .app-header .logo {
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -1px;
+  }
+  .app-header .logo span { color: rgba(255,255,255,.55); }
+  .header-right { display: flex; gap: 12px; align-items: center; }
+  .btn-icon {
+    background: rgba(255,255,255,.18);
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 16px;
+    transition: background .2s;
+  }
+  .btn-icon:hover { background: rgba(255,255,255,.32); }
+
+  /* ─── MAIN WRAPPER ─── */
+  .container {
+    width: 100%;
+    max-width: 480px;
+    flex: 1;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ─── USER LIST SCREEN ─── */
+  .section-tab {
+    display: flex;
+    background: white;
+    border-bottom: 1px solid var(--gray-100);
+    position: sticky;
+    top: 64px;
+    z-index: 90;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 14px 0;
+    border: none;
+    background: none;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+  }
+  .tab-btn.active {
+    color: var(--sky);
+    border-bottom-color: var(--sky);
+    font-weight: 700;
+  }
+
+  .user-list { padding: 8px 0; }
+  .user-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    background: white;
+    border-bottom: 1px solid var(--gray-100);
+    gap: 14px;
+    transition: background .15s;
+  }
+  .user-item:hover { background: var(--sky-pale); }
+
+  .avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--gray-100);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar svg { width: 30px; height: 30px; fill: var(--gray-300); }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--gray-900);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-id {
+    font-size: 12px;
+    color: var(--gray-500);
+    margin-top: 2px;
+  }
+
+  .btn-enter {
+    background: var(--sky);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+    white-space: nowrap;
+  }
+  .btn-enter:hover { background: var(--sky-dark); transform: scale(1.03); }
+
+  /* ─── BOARD SCREEN ─── */
+  .board-header {
+    background: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--gray-100);
+    position: sticky;
+    top: 64px;
+    z-index: 90;
+  }
+  .btn-back {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--gray-700);
+    padding: 4px;
+    display: flex; align-items: center;
+  }
+  .board-title { font-weight: 700; font-size: 16px; }
+
+  .board-profile {
+    background: white;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 6px solid var(--sky-pale);
+  }
+  .board-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--sky-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px;
+    border: 3px solid var(--sky);
+  }
+  .board-name { font-weight: 700; font-size: 18px; }
+  .board-code { font-size: 12px; color: var(--gray-500); }
+  .board-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 8px;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-weight: 700; font-size: 18px; color: var(--sky); }
+  .stat-label { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+  /* write box */
+  .write-box {
+    background: white;
+    margin: 12px 16px;
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  }
+  .write-box-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--sky);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .write-box textarea {
+    width: 100%;
+    border: 1.5px solid var(--gray-100);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    transition: border-color .2s;
+    color: var(--gray-900);
+    background: var(--gray-50);
+  }
+  .write-box textarea:focus { border-color: var(--sky); background: white; }
+  .write-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .char-count { font-size: 12px; color: var(--gray-500); }
+  .btn-send {
+    background: var(--sky);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 9px 22px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-send:hover { background: var(--sky-dark); }
+
+  /* posts */
+  .posts { padding: 0 16px 80px; }
+  .post-card {
+    background: white;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,.04);
+  }
+  .post-q {
+    padding: 16px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .post-q-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--sky-pale);
+    color: var(--sky);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .post-q-text { font-size: 14px; line-height: 1.6; color: var(--gray-700); }
+  .post-a {
+    padding: 14px 16px;
+    background: var(--gray-50);
+    display: flex;
+    gap: 10px;
+  }
+  .post-a-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--sky-pale);
+    border: 2px solid var(--sky);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .post-a-body { flex: 1; }
+  .post-a-name { font-size: 12px; font-weight: 700; color: var(--sky); margin-bottom: 4px; }
+  .post-a-text { font-size: 14px; line-height: 1.6; color: var(--gray-700); }
+  .post-a-date { font-size: 11px; color: var(--gray-300); margin-top: 4px; }
+
+  .no-answer {
+    padding: 14px 16px;
+    background: var(--gray-50);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .no-answer-text { font-size: 13px; color: var(--gray-300); }
+  .btn-answer {
+    margin-left: auto;
+    background: none;
+    border: 1.5px solid var(--sky);
+    color: var(--sky);
+    border-radius: 16px;
+    padding: 5px 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .btn-answer:hover { background: var(--sky); color: white; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 380px;
+    padding: 28px 24px;
+    animation: pop .2s ease;
+  }
+  @keyframes pop {
+    from { transform: scale(.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-title { font-weight: 700; font-size: 17px; margin-bottom: 6px; }
+  .modal-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 18px; line-height: 1.5; }
+  .modal input {
+    width: 100%;
+    border: 1.5px solid var(--gray-100);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    color: var(--gray-900);
+    background: var(--gray-50);
+  }
+  .modal input:focus { border-color: var(--sky); background: white; }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .btn-cancel {
+    flex: 1;
+    background: var(--gray-100);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-cancel:hover { background: var(--gray-300); }
+  .btn-confirm {
+    flex: 2;
+    background: var(--sky);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-confirm:hover { background: var(--sky-dark); }
+
+  .modal-error {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 8px;
+    display: none;
+  }
+  .modal-error.show { display: block; }
+
+  /* answer modal textarea */
+  .modal textarea {
+    width: 100%;
+    border: 1.5px solid var(--gray-100);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+    color: var(--gray-900);
+    background: var(--gray-50);
+    resize: none;
+    margin-top: 10px;
+  }
+  .modal textarea:focus { border-color: var(--sky); background: white; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--gray-900);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all .3s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ─── EMPTY ─── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--gray-300);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; line-height: 1.6; }
+
+  /* ─── ADMIN BADGE ─── */
+  .badge-owner {
+    background: var(--sky);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo">ANON<span>.ask</span></div>
+  <div class="header-right">
+    <button class="btn-icon" onclick="openLoginModal()" title="내 코드 입력">
+      <!-- key icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3L22 7l-3-3"/></svg>
+    </button>
+    <button class="btn-icon" title="알림">
+      <!-- bell icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ════════════════════════════
+       SCREEN 1: USER LIST
+  ════════════════════════════ -->
+  <div id="screen-list" class="screen active">
+    <div class="section-tab">
+      <button class="tab-btn active">방명록 목록</button>
+      <button class="tab-btn" onclick="showToast('준비 중인 기능입니다 👀')">인기</button>
+      <button class="tab-btn" onclick="showToast('준비 중인 기능입니다 👀')">최신</button>
+    </div>
+    <div class="user-list" id="user-list"></div>
+  </div>
+
+  <!-- ════════════════════════════
+       SCREEN 2: BOARD
+  ════════════════════════════ -->
+  <div id="screen-board" class="screen">
+    <div class="board-header">
+      <button class="btn-back" onclick="goBack()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="board-title" id="board-title"></span>
+    </div>
+
+    <div class="board-profile">
+      <div class="board-avatar" id="board-avatar"></div>
+      <div class="board-name" id="board-name"></div>
+      <div class="board-code" id="board-code-display"></div>
+      <div class="board-stats">
+        <div class="stat">
+          <div class="stat-num" id="stat-posts">0</div>
+          <div class="stat-label">메시지</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="stat-answers">0</div>
+          <div class="stat-label">답변</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="write-box">
+      <div class="write-box-label">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        익명 메시지 남기기
+      </div>
+      <textarea id="write-text" rows="3" maxlength="200" placeholder="익명으로 메시지를 남겨 보세요"
+        oninput="updateCharCount()"></textarea>
+      <div class="write-actions">
+        <span class="char-count"><span id="char-count">0</span>/200</span>
+        <button class="btn-send" onclick="submitMessage()">보내기</button>
+      </div>
+    </div>
+
+    <div class="posts" id="posts-container"></div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ═══════════════
+     MODAL: Code Login
+════════════════════ -->
+<div class="modal-overlay" id="modal-login">
+  <div class="modal">
+    <div class="modal-title">🔑 내 코드 입력</div>
+    <div class="modal-sub">부여받은 개인 코드를 입력하면<br>해당 방명록에 답변할 수 있어요.</div>
+    <input type="text" id="input-code" placeholder="예: USER-ALPHA-001" oninput="clearLoginError()">
+    <div class="modal-error" id="login-error">코드가 올바르지 않아요. 다시 확인해 주세요.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-login')">취소</button>
+      <button class="btn-confirm" onclick="loginWithCode()">인증하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════
+     MODAL: Answer
+════════════════════ -->
+<div class="modal-overlay" id="modal-answer">
+  <div class="modal">
+    <div class="modal-title">💬 답변 작성</div>
+    <div class="modal-sub" id="answer-q-preview" style="background:var(--sky-pale);border-radius:8px;padding:10px 12px;color:var(--gray-700)"></div>
+    <textarea id="answer-text" rows="4" maxlength="300" placeholder="답변을 입력해 주세요"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-answer')">취소</button>
+      <button class="btn-confirm" onclick="submitAnswer()">답변 등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+const USERS = [
+  { id: 'USER-ALPHA-001', name: '그래서', handle: '1ky10yk',   emoji: '🙄' },
+  { id: 'USER-BETA-002',  name: '뭐', handle: '90grape',   emoji: '😟' },
+  { id: 'USER-GAMMA-003', name: '청년',       handle: 'tttuuu',    emoji: '😛' },
+  { id: 'USER-DELTA-004', name: '나같경',       handle: 'junoxox',   emoji: '🤠' },
+  { id: 'USER-ZETA-005',  name: '메롱',   handle: 'doridori',  emoji: '🤮' },
+  { id: 'USER-ETA-006',   name: '허접',   handle: 'udangtang3',emoji: '😴' },
+];
+
+// Posts storage: { [userId]: [{id, text, date, answer}] }
+const POSTS_DB = {};
+USERS.forEach(u => { POSTS_DB[u.id] = []; });
+
+// Seed sample posts
+);
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let loggedInUserId = null; // code-verified user
+let currentBoardUserId = null;
+let answeringPostId = null;
+
+// ═══════════════════════════════════════
+// RENDER USER LIST
+// ═══════════════════════════════════════
+function renderUserList() {
+  const list = document.getElementById('user-list');
+  list.innerHTML = '';
+  USERS.forEach(user => {
+    const isOwner = loggedInUserId === user.id;
+    const el = document.createElement('div');
+    el.className = 'user-item';
+    el.innerHTML = `
+      <div class="avatar">${user.emoji}</div>
+      <div class="user-info">
+        <div class="user-name">${user.name}${isOwner ? '<span class="badge-owner">나</span>' : ''}</div>
+        <div class="user-id">@${user.handle}</div>
+      </div>
+      <button class="btn-enter" onclick="enterBoard('${user.id}')">게시판 입장</button>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════
+// ENTER BOARD
+// ═══════════════════════════════════════
+function enterBoard(userId) {
+  currentBoardUserId = userId;
+  const user = USERS.find(u => u.id === userId);
+  const posts = POSTS_DB[userId];
+
+  document.getElementById('board-title').textContent = user.name + '의 방명록';
+  document.getElementById('board-avatar').textContent = user.emoji;
+  document.getElementById('board-name').textContent = user.name;
+  document.getElementById('board-code-display').textContent = '@' + user.handle;
+
+  document.getElementById('stat-posts').textContent = posts.length;
+  document.getElementById('stat-answers').textContent = posts.filter(p => p.answer).length;
+
+  renderPosts(userId);
+
+  document.getElementById('screen-list').classList.remove('active');
+  document.getElementById('screen-board').classList.add('active');
+  document.getElementById('write-text').value = '';
+  document.getElementById('char-count').textContent = '0';
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  document.getElementById('screen-board').classList.remove('active');
+  document.getElementById('screen-list').classList.add('active');
+  currentBoardUserId = null;
+}
+
+// ═══════════════════════════════════════
+// RENDER POSTS
+// ═══════════════════════════════════════
+function renderPosts(userId) {
+  const container = document.getElementById('posts-container');
+  const posts = POSTS_DB[userId];
+  const user = USERS.find(u => u.id === userId);
+  const isOwner = loggedInUserId === userId;
+
+  if (posts.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✉️</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = [...posts].reverse().map(post => `
+    <div class="post-card" id="post-${post.id}">
+      <div class="post-q">
+        <div class="post-q-label">Q 익명</div>
+        <div class="post-q-text">${escHtml(post.text)}</div>
+        <div style="font-size:11px;color:var(--gray-300);margin-top:6px">${post.date}</div>
+      </div>
+      ${post.answer
+        ? `<div class="post-a">
+            <div class="post-a-avatar">${user.emoji}</div>
+            <div class="post-a-body">
+              <div class="post-a-name">${user.name}</div>
+              <div class="post-a-text">${escHtml(post.answer.text)}</div>
+              <div class="post-a-date">${post.answer.date}</div>
+            </div>
+          </div>`
+        : `<div class="no-answer">
+            <div class="no-answer-text">[답변 완료] 조금만 기다려 주세요</div>
+            ${isOwner
+              ? `<button class="btn-answer" onclick="openAnswerModal('${post.id}')">답변하기</button>`
+              : ''}
+          </div>`
+      }
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+// SUBMIT MESSAGE (anonymous)
+// ═══════════════════════════════════════
+function submitMessage() {
+  const text = document.getElementById('write-text').value.trim();
+  if (!text) { showToast('메시지를 입력해 주세요'); return; }
+
+  const now = new Date();
+  const date = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const post = { id: 'p' + Date.now(), text, date, answer: null };
+
+  POSTS_DB[currentBoardUserId].unshift(post);
+  document.getElementById('write-text').value = '';
+  document.getElementById('char-count').textContent = '0';
+
+  refreshBoardStats();
+  renderPosts(currentBoardUserId);
+  showToast('메시지가 익명으로 전달됐어요 ✉️');
+}
+
+function updateCharCount() {
+  const len = document.getElementById('write-text').value.length;
+  document.getElementById('char-count').textContent = len;
+}
+
+// ═══════════════════════════════════════
+// ANSWER MODAL
+// ═══════════════════════════════════════
+function openAnswerModal(postId) {
+  if (!loggedInUserId) { openLoginModal(); return; }
+  if (loggedInUserId !== currentBoardUserId) {
+    showToast('본인 방명록에만 답변할 수 있어요 🔒'); return;
+  }
+  answeringPostId = postId;
+  const post = POSTS_DB[currentBoardUserId].find(p => p.id === postId);
+  document.getElementById('answer-q-preview').textContent = post.text;
+  document.getElementById('answer-text').value = '';
+  document.getElementById('modal-answer').classList.add('open');
+}
+
+function submitAnswer() {
+  const text = document.getElementById('answer-text').value.trim();
+  if (!text) { showToast('답변 내용을 입력해 주세요'); return; }
+
+  const now = new Date();
+  const date = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const post = POSTS_DB[currentBoardUserId].find(p => p.id === answeringPostId);
+  post.answer = { text, date };
+
+  closeModal('modal-answer');
+  refreshBoardStats();
+  renderPosts(currentBoardUserId);
+  showToast('답변이 등록됐어요 💬');
+}
+
+// ═══════════════════════════════════════
+// CODE LOGIN
+// ═══════════════════════════════════════
+function openLoginModal() {
+  document.getElementById('input-code').value = '';
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('modal-login').classList.add('open');
+}
+
+function loginWithCode() {
+  const code = document.getElementById('input-code').value.trim().toUpperCase();
+  const user = USERS.find(u => u.id === code);
+  if (!user) {
+    document.getElementById('login-error').classList.add('show');
+    return;
+  }
+  loggedInUserId = user.id;
+  closeModal('modal-login');
+  renderUserList();
+  if (currentBoardUserId) renderPosts(currentBoardUserId);
+  showToast(`${user.name}님으로 인증되었어요 ✅`);
+}
+
+function clearLoginError() {
+  document.getElementById('login-error').classList.remove('show');
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function refreshBoardStats() {
+  const posts = POSTS_DB[currentBoardUserId];
+  document.getElementById('stat-posts').textContent = posts.length;
+  document.getElementById('stat-answers').textContent = posts.filter(p => p.answer).length;
+}
+
+// close modal on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// Enter key submit for login
+document.getElementById('input-code').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loginWithCode();
+});
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+renderUserList();
+</script>
+</body>
+</html>
