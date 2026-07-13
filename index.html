@@ -87,7 +87,7 @@
         익명 메시지 남기기
       </div>
       <textarea id="write-text" rows="3" maxlength="200"
-        placeholder="익명으로 메시지를 남겨보세요... (최대 200자)"
+        placeholder="익명으로 메시지를 남겨 보세요"
         oninput="updateCharCount()"></textarea>
       <div class="write-actions">
         <span class="char-count"><span id="char-count">0</span>/200</span>
@@ -96,7 +96,7 @@
     </div>
 
     <div id="loading-posts" class="loading-state" style="display:none">
-      <div class="spinner"></div><p>불러오는 중...</p>
+      <div class="spinner"></div><p>불러오는 중..</p>
     </div>
     <div class="posts" id="posts-container"></div>
   </div>
@@ -107,7 +107,7 @@
     <div class="modal-title">🔑 내 코드 입력</div>
     <div class="modal-sub">부여받은 개인 코드를 입력하면<br>해당 방명록에 답변할 수 있어요.</div>
     <input type="text" id="input-code" placeholder="예: USER-ALPHA-001" oninput="clearLoginError()">
-    <div class="modal-error" id="login-error">코드가 올바르지 않아요. 다시 확인해 주세요.</div>
+    <div class="modal-error" id="login-error">코드가 올바르지 않습니다.</div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modal-login')">취소</button>
       <button class="btn-confirm" onclick="loginWithCode()">인증하기</button>
@@ -121,7 +121,7 @@
     <div class="modal-sub" id="answer-q-preview"
       style="background:var(--sky-pale);border-radius:8px;padding:10px 12px;color:var(--gray-700)"></div>
     <textarea id="answer-text" rows="4" maxlength="300"
-      placeholder="답변을 입력해 주세요... (최대 300자)"></textarea>
+      placeholder="답변을 입력해 주세요"></textarea>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modal-answer')">취소</button>
       <button class="btn-confirm" onclick="submitAnswer()">답변 등록</button>
@@ -277,7 +277,7 @@
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">✉️</div>
-          <div class="empty-text">아직 메시지가 없어요.<br>첫 번째 메시지를 남겨보세요!</div>
+          <div class="empty-text"><br></div>
         </div>`;
       return;
     }
@@ -307,7 +307,7 @@
                 </div>
               </div>`
             : `<div class="no-answer">
-                <div class="no-answer-text">아직 답변이 없어요</div>
+                <div class="no-answer-text">답장 안 해 주면 다음 달에도 솔로임</div>
                 ${isOwner
                   ? `<button class="btn-answer" onclick="openAnswerModal('${post.id}','${escHtml(post.text).replace(/'/g,"\\'")}')">답변하기</button>`
                   : ''}
@@ -319,9 +319,9 @@
 
   window.submitMessage = async function() {
     const text = document.getElementById('write-text').value.trim();
-    if (!text) { showToast('메시지를 입력해 주세요 ✏️'); return; }
+    if (!text) { showToast('메시지를 입력해 주세요'); return; }
     const btn = document.querySelector('.btn-send');
-    btn.disabled = true; btn.textContent = '전송 중...';
+    btn.disabled = true; btn.textContent = '전송 중..';
     try {
       await addDoc(collection(db, 'boards', window.currentBoardUserId, 'posts'), {
         text, createdAt: serverTimestamp(), answer: null
@@ -330,7 +330,7 @@
       document.getElementById('char-count').textContent = '0';
       showToast('메시지가 익명으로 전달됐어요 ✉️');
     } catch(e) {
-      showToast('전송 실패. 잠시 후 다시 시도해 주세요 ⚠️');
+      showToast('전송 실패. 잠시 후 다시 시도해 주세요');
     }
     btn.disabled = false; btn.textContent = '보내기';
   };
@@ -349,9 +349,9 @@
 
   window.submitAnswer = async function() {
     const text = document.getElementById('answer-text').value.trim();
-    if (!text) { showToast('답변 내용을 입력해 주세요 ✏️'); return; }
+    if (!text) { showToast('답변 내용을 입력해 주세요'); return; }
     const btn = document.querySelector('#modal-answer .btn-confirm');
-    btn.disabled = true; btn.textContent = '등록 중...';
+    btn.disabled = true; btn.textContent = '등록 중..';
     try {
       const postRef = doc(db, 'boards', window.answeringBoardId, 'posts', window.answeringPostId);
       await updateDoc(postRef, {
@@ -360,7 +360,7 @@
       closeModal('modal-answer');
       showToast('답변이 등록됐어요 💬');
     } catch(e) {
-      showToast('등록 실패. 잠시 후 다시 시도해 주세요 ⚠️');
+      showToast('등록 실패. 잠시 후 다시 시도해 주세요');
     }
     btn.disabled = false; btn.textContent = '답변 등록';
   };
