@@ -66,12 +66,12 @@
   <div id="screen-list" class="screen active">
     <div class="section-tab">
       <button class="tab-btn active">방명록 목록</button>
-      <button class="tab-btn" onclick="showToast('준비 중인 기능입니다 👀')">인기</button>
-      <button class="tab-btn" onclick="showToast('준비 중인 기능입니다 👀')">최신</button>
+      <button class="tab-btn" onclick="showToast('준비 중인 기능입니다 ')">인기</button>
+      <button class="tab-btn" onclick="showToast('준비 중인 기능입니다 ')">최신</button>
     </div>
     <div id="loading-users" class="loading-state">
       <div class="spinner"></div>
-      <p>불러오는 중...</p>
+      <p>불러오는 중..</p>
     </div>
     <div class="user-list" id="user-list"></div>
   </div>
@@ -150,8 +150,8 @@
     <div style="background:var(--gray-50); padding:12px; border-radius:10px; margin-bottom:16px;">
       <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:var(--gray-700);">➕ 새 사람 추가하기</div>
       <input type="text" id="new-name" placeholder="이름 (예: 닉넴변경함)" style="margin-bottom:6px; padding:8px;">
-      <input type="text" id="new-handle" placeholder="아이디 (예: 1ky10yk)" style="margin-bottom:6px; padding:8px;">
-      <input type="text" id="new-code" placeholder="비밀 코드 (예: MY-CODE-123)" style="padding:8px;">
+      <input type="text" id="new-handle" placeholder="아이디 (예: 닉넴변경함)" style="margin-bottom:6px; padding:8px;">
+      <input type="text" id="new-code" placeholder="비밀 코드 (예: 개인 메시지 확인)" style="padding:8px;">
       <button onclick="addNewUser()" style="width:100%; margin-top:8px; background:var(--gray-700); color:white; border:none; padding:8px; border-radius:6px; font-weight:700; cursor:pointer;">목록에 추가</button>
     </div>
 
@@ -289,7 +289,7 @@
     if (posts.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">✉️</div>
+          <div class="empty-icon"></div>
           <div class="empty-text"><br></div>
         </div>`;
       return;
@@ -431,11 +431,11 @@
     const code = document.getElementById('new-code').value.trim().toUpperCase();
 
     if (!name || !handle || !code) {
-      showToast('이름, 아이디, 비밀 코드를 모두 입력해주세요 ⚠️');
+      showToast('이름, 아이디, 비밀 코드를 모두 입력해 주세요.');
       return;
     }
     if (tempUsers.some(u => u.id === code)) {
-      showToast('이미 존재하는 비밀 코드입니다. 다른 코드를 써주세요 ⚠️');
+      showToast('이미 존재하는 비밀 코드입니다. 다른 코드를 써 주세요.');
       return;
     }
 
@@ -444,7 +444,7 @@
     document.getElementById('new-handle').value = '';
     document.getElementById('new-code').value = '';
     renderAdminUserList();
-    showToast('목록에 추가되었습니다. 아래 저장하기를 눌러주세요.');
+    showToast('목록에 추가되었습니다. 아래 저장하기를 눌러 주세요.');
   };
 
   window.updateTempCode = function(index, newCode) {
