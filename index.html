@@ -47,8 +47,46 @@
   </div>
 </header>
 
-<button class="admin-btn-floating" onclick="openAdminModal()">⚙️ 관리자 설정</button>
+<button class="admin-btn-floating" onclick="openAdminLoginModal()">⚙️ 관리자 설정</button>
+  <div class="modal-overlay" id="modal-admin-login">
+  <div class="modal">
+    <div class="modal-title">🔐 관리자 인증</div>
+    <div class="modal-sub">관리자 설정에 접근하려면<br>비밀번호를 입력해 주세요.</div>
+    <input type="password" id="input-admin-password" placeholder="비밀번호 입력" oninput="clearAdminLoginError()">
+    <div class="modal-error" id="admin-login-error">비밀번호가 일치하지 않습니다.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-admin-login')">취소</button>
+      <button class="btn-confirm" onclick="verifyAdminPassword()">확인</button>
+    </div>
+  </div>
+</div>
+  // ── 관리자 비밀번호 설정 (원하는 비밀번호로 변경하세요!) ────────────────────────
+  const ADMIN_PASSWORD = "0000"; 
 
+  window.openAdminLoginModal = function() {
+    document.getElementById('input-admin-password').value = '';
+    document.getElementById('admin-login-error').classList.remove('show');
+    document.getElementById('modal-admin-login').classList.add('open');
+  };
+
+  window.verifyAdminPassword = function() {
+    const inputPwd = document.getElementById('input-admin-password').value.trim();
+    if (inputPwd === ADMIN_PASSWORD) {
+      closeModal('modal-admin-login');
+      openAdminModal(); // 인증 성공 시 실제 관리자 설정 창 열기
+      showToast('관리자 모드로 진입합니다 🔓');
+    } else {
+      document.getElementById('admin-login-error').classList.add('show');
+    }
+  };
+
+  window.clearAdminLoginError = function() {
+    document.getElementById('admin-login-error').classList.remove('show');
+  };
+  // 기존 input-code 엔터키 이벤트 리스너 바로 아래에 추가
+  document.getElementById('input-admin-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') window.verifyAdminPassword();
+  });
 <div class="container">
   <div id="screen-list" class="screen active">
     <div class="section-tab">
