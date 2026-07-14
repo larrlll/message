@@ -169,10 +169,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getFirestore, collection, doc, getDocs, addDoc, updateDoc,
-    query, orderBy, onSnapshot, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getFirestore, collection, doc, getDocs, addDoc, updateDoc, setDoc,
+  query, orderBy, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyALmi9bFPlxlv8h8YT3RDviVswF8qJLhMo",
@@ -200,8 +200,20 @@
     { id: 'USER-ETA-006',   name: '우당탕탕',   handle: 'udangtang3' },
   ];
 
-  // 저장된 사용자 목록이 있으면 불러오고, 없으면 기본값 사용
-  window.USERS = JSON.parse(localStorage.getItem('anon_users')) || defaultUsers;
+ window.USERS = [];
+const usersDocRef = doc(db, 'settings', 'userList');
+
+// 파이어베이스에서 실시간으로 사용자 목록 불러오기 및 동기화
+onSnapshot(usersDocRef, (docSnap) => {
+  if (docSnap.exists() && docSnap.data().users) {
+    window.USERS = docSnap.data().users;
+  } else {
+    // DB에 데이터가 처음 없을 때는 기본값(defaultUsers)을 파이어베이스에 저장
+    window.USERS = defaultUsers;
+    setDoc(usersDocRef, { users: defaultUsers });
+  }
+  renderUserList(); // 데이터가 바뀌거나 창을 새로 열 때마다 목록을 새로고침
+});
 
   // ── 상태 ──────────────────────────────────
   window.loggedInUserId     = null;
@@ -460,13 +472,20 @@
     }
   };
 
-  window.saveAdminChanges = function() {
-    window.USERS = tempUsers;
-    localStorage.setItem('anon_users', JSON.stringify(window.USERS));
-    renderUserList();
+window.saveAdminChanges = async function() {
+  const btn = document.querySelector('#modal-admin .btn-confirm');
+  btn.disabled = true; btn.textContent = '저장 중..';
+  try {
+    // 파이어베이스 settings/userList 문서에 새로운 사용자 목록 저장
+    await setDoc(doc(db, 'settings', 'userList'), { users: tempUsers });
     closeModal('modal-admin');
-    showToast('설정이 성공적으로 저장되었습니다 ✅');
-  };
+    showToast('설정이 모든 창에 동기화되었습니다 ✅');
+  } catch(e) {
+    console.error(e);
+    showToast('저장 실패. 파이어베이스 권한(Rules)을 확인해 주세요 ⚠️');
+  }
+  btn.disabled = false; btn.textContent = '설정 저장하기';
+};
 
   // ── 로그인 ──────────────────────────────────────────
   window.openLoginModal = function() {
@@ -524,7 +543,6 @@
     if (e.key === 'Enter') window.verifyAdminPassword();
   });
 
-  renderUserList();
 </script>
 </body>
 </html>
